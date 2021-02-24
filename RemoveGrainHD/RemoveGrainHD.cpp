@@ -1878,7 +1878,7 @@ class	SingleQuantile : public GenericVideoFilter, public PlanarAccess
 		return df;
 	};
 public:
-	SingleQuantile(PClip clip, int *_xradius, int *_yradius, int *_limit, bool planar, sqf func, char *name) : primary(func), GenericVideoFilter(clip), PlanarAccess(vi)
+	SingleQuantile(PClip clip, int *_xradius, int *_yradius, int *_limit, bool planar, sqf func, const char *name) : primary(func), GenericVideoFilter(clip), PlanarAccess(vi)
 	{
 		if(planes == 0) AVSenvironment->ThrowError("%s: only planar color spaces are allowed", name);
 		
@@ -1966,7 +1966,7 @@ int	SmartMedianDefault(int xradius, int yradius)
 	return 4 * min(xradius, yradius) + 2;
 }
 
-AVSValue __cdecl CreateSingleQuantile(AVSValue args, sqf func, int dfunc(int, int), char *name)
+AVSValue __cdecl CreateSingleQuantile(AVSValue args, sqf func, int dfunc(int, int), const char *name)
 {
 	enum ARGS { CLIP, RADIUS, LIMIT, RADIUS_Y, YRADIUS_Y, LIMIT_Y, RADIUS_U, YRADIUS_U, LIMIT_U
 					, XRADIUS_V, YRADIUS_V, LIMIT_V, PLANAR};
