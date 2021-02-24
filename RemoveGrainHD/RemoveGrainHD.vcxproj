@@ -216,7 +216,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="documentation\RemoveGrainHD.htm">
-      <DeploymentContent>true</DeploymentContent>
+      <DeploymentContent>false</DeploymentContent>
     </None>
   </ItemGroup>
   <ItemGroup>
