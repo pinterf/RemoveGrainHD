@@ -22,6 +22,9 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+// FIXME: PF 2021 to check: /J option is given for compiler (treat char as unsigned char), 
+//        does it affect anything if I remove this speciality?
+
 #define	DEFAULT_RADIUS 2
 //#define DEBUG_NAME
 //#define	PROFILE_VERSION
