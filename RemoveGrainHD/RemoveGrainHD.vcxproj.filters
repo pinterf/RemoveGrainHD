@@ -45,4 +45,9 @@
   <ItemGroup>
     <None Include="documentation\RemoveGrainHD.htm" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="RemoveGrainHD.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
 </Project>
