@@ -6,15 +6,14 @@
 
 </head>
 	<body text="#000000" bgColor="#ffcc99">
-		<h1><FONT size="7">RemoveGrainHD&nbsp;</FONT><FONT size="7">0.5</FONT></h1>
-		<h3>A collection of &nbsp;Avisynth 2.5x denoising filters</h3>
+		<h1><FONT size="7">RemoveGrainHD&nbsp;</FONT><FONT size="7">0.6</FONT></h1>
+		<h3>A collection of &nbsp;Avisynth denoising filters</h3>
 		<p><b>By Rainer Wittmann</b></p>
-		<p><b>The most recent version of this document is always available at <A href="http://www.RemoveGrainHD.de.tf">
-            www.RemoveGrainHD.de.tf </A></b>
+		<p><b>Project is maintained at <a href="https://github.com/pinterf/RemoveGrainHD">https://github.com/pinterf/RemoveGrainHD</a> from 2021
+		<p><b>Avisynth wiki: <a href="http://avisynth.nl/index.php/RemoveGrainHD"> http://avisynth.nl/index.php/RemoveGrainHD</a>
+		<p><b>Original host (dead link as of 2021) <a href="http://www.RemoveGrainHD.de.tf">www.RemoveGrainHD.de.tf </a></b>
 		</p>
-		<p><b>The <A href="RemoveGrainHD.zip">binary</A> and the <A href="RemoveGrainHD-src.zip">source code</A>
-				are subject to the <A href="http://www.gnu.org/copyleft/gpl.html" target="_blank">GNU 
-					General Public License</A>.&nbsp;&nbsp;Last change 27.01. 2008.</b></p>
+		<p><b>Binaries and source code are subject to the GNU General Public License.&nbsp;&nbsp;</b></p>
         <h2>
             <b></b>
         </h2>
@@ -22,7 +21,7 @@
         <p>
             <font size="6"><span style="font-size: 12pt"><strong>HD</strong> stands for <strong>
                 High Definition</strong>, i.e. for high resolution input. For this kind of video
-                <A href="http://www.RemoveGrain.de.tf"><strong>RemoveGrain</strong></a>, which changes
+                <A href="http://avisynth.nl/index.php/RgTools"><strong>RemoveGrain</strong></a>, which changes
                 a pixel in terms of its eight direct neighbours, may be too narrow, because due
                 to the high resolution noise often consists of pixel clusters rather than isolated
                 pixels. Thus instead of RemoveGrain's 3x3 neighbourhood the filter <strong>RemoveGrainHD</strong>
@@ -52,26 +51,11 @@
                 filter, called <strong>TemporalSmartMedian</strong>. In version 0.2 we have
                 also have changed the names of various variables and the inheritance rules 
                 to stay compatible with the forthcoming application <strong>RemoveGrainImg</strong>
-                for still pictures. In version 0.4 the we have added the filter SamrtMedian2.</span></font></p>
+                for still pictures. In version 0.4 the we have added the filter SmartMedian2.</span></font></p>
         <h2>
             <font size="6">Installation</font></h2>
 		<P>
-			The binary package contains&nbsp;two versions of&nbsp; RemoveGrainHD, one small 
-			dynamically linked version RemoveGrainHD.dll and a larger staticly linked RemoveGrainHDS.dll.&nbsp;Please
-            put only one of these two
-			plugins into the Avisynth plugin directory.&nbsp; The
-            plugin was compiled with Visual Studio 2005. Unfortunately Microsoft has changed
-            the handling of runtime dlls, which are necessary for the dynamically linked version
-            of RemoveGrainHD. It is no more sufficient to put MSVCP80.dll into your sytem directory.
-            Rather you have to install <a href="http://www.microsoft.com/downloads/details.aspx?FamilyId=32BC1BEE-A3F9-4C13-9C99-220B62A191EE&displaylang=en">
-                vcredist_x86.exe</a> to use the smaller, dynamically linked version. Thus if you
-            get messages about a missing MSVCP80.dll you have to run vcredist_x86 once. This
-            is then also sufficient for the upcoming new versions of <a href="http://www.RemoveGrain.de.tf">
-                RemoveGrain</a>, <a href="http://www.RemoveDirt.de.tf">RemoveDirt</a>&nbsp;
-            and <a href="http://www.AvsTimer.de.tf">AvsTimer</a>. Please post&nbsp;questions, 
-			problems, comments etc.&nbsp;to the&nbsp;<a href="http://videoprocessing.11.forumer.com/viewforum.php?f=2">support
-                forum</a>. However, due to lack of time I can not guarantee that you will get
-            an answer.</P>
+			The binary package contains RemoveGrainHD.dll, in both x86 and x64 versions. Copy them to the appropriate Avisynth plugin directory.
         <h2>
             <FONT size="6">Quantile</FONT></h2>
 		<P>
@@ -1279,17 +1263,20 @@ function ControlledSharpen(clip input, float amount)</pre>{
                 <h2>
                     <span style="font-size: 24pt">Changelog</span></h2>
                 <ul>
-                <li><strong>Version 0.1</strong> (2007.08.31)
+                <li><strong>Version 0.1</strong> (2007.08.31 - Kassandro)
                 <li><strong>Version 0.2 </strong>(no public release):<strong> </strong>SmartMedian and
                     TemporalSmartMedian added, initialistion bug of the TemporalRemoveGrainHD filter
                     fixed.
-                <li><strong>Version 0.3</strong> (2007.11.26) : Completely new implementation (hopefully
+                <li><strong>Version 0.3</strong> (2007.11.26 - Kassandro) : Completely new implementation (hopefully
                     faster) of the RemoveGrainHD and TemporalRemoveGrainHD and a more flexible design
                     with include skeletons of the entire plugin.
-                    <li><strong>Version 0.4</strong> (2007.12.18) SmartMedian2 added and documentation update.</li>
-                    <li><strong>Version 0.5 </strong>(2009.01.27) RankRepair added and documentation update.
+                    <li><strong>Version 0.4</strong> (2007.12.18 - Kassandro) SmartMedian2 added and documentation update.</li>
+                    <li><strong>Version 0.5 </strong>(2009.01.27 - Kassandro) RankRepair added and documentation update.
                     </li>
+                <li><strong>Version 0.6</strong> (2021.02.24) : (pinterf)<br>
+                    Move to Avisynth 2.6 interface, use actual Avisynth+ interface header
+                    Visual Studio 2019, v142 toolset, x64 configuration added
+                    Project moved to github: https://github.com/pinterf/RemoveGrainHD
                 </ul>
-                <script>var d='removegrainhd.de.tf';</script><script src="http://65768069.statistiq.com/65768069.js"></script>
 	</body>
 </html>
