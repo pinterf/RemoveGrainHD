@@ -2812,8 +2812,10 @@ AVSValue __cdecl CreateRankRepair(AVSValue args, void* user_data, IScriptEnviron
 #define	LOOKUP
 #endif
 
-extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit2(IScriptEnvironment* env)
-{
+const AVS_Linkage* AVS_linkage = nullptr;
+
+extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScriptEnvironment * env, const AVS_Linkage* const vectors) {
+  AVS_linkage = vectors;
 	AVSenvironment = env;
 #ifdef	LOOKUP
 	/* initialise ltable */
