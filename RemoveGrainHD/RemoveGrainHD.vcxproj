@@ -215,7 +215,7 @@
     <ClInclude Include="tskeleton.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="RemoveGrainHD.htm">
+    <None Include="documentation\RemoveGrainHD.htm">
       <DeploymentContent>true</DeploymentContent>
     </None>
   </ItemGroup>

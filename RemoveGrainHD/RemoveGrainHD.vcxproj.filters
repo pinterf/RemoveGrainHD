@@ -43,6 +43,6 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="RemoveGrainHD.htm" />
+    <None Include="documentation\RemoveGrainHD.htm" />
   </ItemGroup>
 </Project>
