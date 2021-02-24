@@ -46,4 +46,6 @@ public:
 	PlanarAccess(const VideoInfo &vi, bool planar = true);
 };
 
+void BitBlt(uint8_t* dstp, int dst_pitch, const uint8_t* srcp, int src_pitch, int row_size, int height);
+
 #endif // PLANAR_H

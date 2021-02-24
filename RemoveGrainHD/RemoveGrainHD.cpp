@@ -1783,8 +1783,6 @@ void
 #		include "skeleton2.h"
 }
 
-static	IScriptEnvironment	*AVSenvironment;
-
 #ifdef	PROFILE_VERSION
 unsigned
 #else
@@ -1797,7 +1795,7 @@ void
 				   , int corner_boxsize, int *table)
 #endif
 {
-	AVSenvironment->BitBlt(dst, dpitch, src, spitch, w, h);
+	BitBlt(dst, dpitch, src, spitch, w, h);
 #ifdef	PROFILE_VERSION
 	return 0;
 #endif
@@ -1878,9 +1876,9 @@ class	SingleQuantile : public GenericVideoFilter, public PlanarAccess
 		return df;
 	};
 public:
-	SingleQuantile(PClip clip, int *_xradius, int *_yradius, int *_limit, bool planar, sqf func, const char *name) : primary(func), GenericVideoFilter(clip), PlanarAccess(vi)
+	SingleQuantile(PClip clip, int *_xradius, int *_yradius, int *_limit, bool planar, sqf func, const char *name, IScriptEnvironment* env) : primary(func), GenericVideoFilter(clip), PlanarAccess(vi)
 	{
-		if(planes == 0) AVSenvironment->ThrowError("%s: only planar color spaces are allowed", name);
+		if(planes == 0) env->ThrowError("%s: only planar color spaces are allowed", name);
 		
 #ifndef	LOCALTABLE		
 		memset(table, 0, sizeof(int)*TABLE_SIZE);
@@ -1913,7 +1911,7 @@ public:
 					pfunction[i] = primary;
 					int	xr, yr;
 					if( ((inner_width[i] -= (xr = 2 * xradius[i] + 1)) <= 0) || ((inner_height[i] -= (yr = 2 * yradius[i] + 1)) <= 0) )
-					AVSenvironment->ThrowError("%s: width or height of the clip is to small!", name);
+					env->ThrowError("%s: width or height of the clip is to small!", name);
 					int	x = xradius[i] + 1;
 					limits[i] = (new int *[x]) - x;
 					int ya = yradius[i] + 1;
@@ -1966,7 +1964,7 @@ int	SmartMedianDefault(int xradius, int yradius)
 	return 4 * min(xradius, yradius) + 2;
 }
 
-AVSValue __cdecl CreateSingleQuantile(AVSValue args, sqf func, int dfunc(int, int), const char *name)
+AVSValue __cdecl CreateSingleQuantile(AVSValue args, sqf func, int dfunc(int, int), const char *name, IScriptEnvironment* env)
 {
 	enum ARGS { CLIP, RADIUS, LIMIT, RADIUS_Y, YRADIUS_Y, LIMIT_Y, RADIUS_U, YRADIUS_U, LIMIT_U
 					, XRADIUS_V, YRADIUS_V, LIMIT_V, PLANAR};
@@ -1987,17 +1985,17 @@ AVSValue __cdecl CreateSingleQuantile(AVSValue args, sqf func, int dfunc(int, in
 		j -= 3;
 	} while( --i >= 0 );
 	
-	return new SingleQuantile(args[CLIP].AsClip(), xradius, yradius, limits, args[PLANAR].AsBool(false), func, name);
+	return new SingleQuantile(args[CLIP].AsClip(), xradius, yradius, limits, args[PLANAR].AsBool(false), func, name, env);
 }
 
 AVSValue __cdecl CreateQuantile(AVSValue args, void* user_data, IScriptEnvironment* env)
 {	
-	return CreateSingleQuantile(args, single_quantile, QuantileDefault, "Quantile");
+	return CreateSingleQuantile(args, single_quantile, QuantileDefault, "Quantile", env);
 }
 
 AVSValue __cdecl CreateSmartMedian(AVSValue args, void* user_data, IScriptEnvironment* env)
 {	
-	return CreateSingleQuantile(args, smartmedian, SmartMedianDefault, "SmartMedian");
+	return CreateSingleQuantile(args, smartmedian, SmartMedianDefault, "SmartMedian", env);
 }
 
 #ifdef	PROFILE_VERSION
@@ -2014,7 +2012,7 @@ void
 
 #define	COMPARE_MASK	(~24)
 	
-static	void CompareVideoInfo(VideoInfo &vi1, const VideoInfo &vi2, const char *progname)
+static	void CompareVideoInfo(VideoInfo &vi1, const VideoInfo &vi2, const char *progname, IScriptEnvironment *env)
 {	
 	if( (vi1.width != vi2.width) || (vi1.height != vi2.height) || ( (vi1.pixel_type & COMPARE_MASK) != (vi2.pixel_type & COMPARE_MASK) ))
 	{
@@ -2022,7 +2020,7 @@ static	void CompareVideoInfo(VideoInfo &vi1, const VideoInfo &vi2, const char *p
 		debug_printf("widths = %u, %u, heights = %u, %u, color spaces = %X, %X\n"
 						, vi1.width, vi2.width, vi1.height, vi2.height, vi1.pixel_type, vi2.pixel_type);
 #endif
-		AVSenvironment->ThrowError("%s: clips must be of equal type", progname);
+		env->ThrowError("%s: clips must be of equal type", progname);
 	}
 	if(vi1.num_frames > vi2.num_frames) vi1.num_frames = vi2.num_frames;
 }
@@ -2052,10 +2050,10 @@ class	RemoveGrainHD : public GenericVideoFilter, public PlanarAccess
 	{
 #ifdef	AVS_COPY
 		PVideoFrame df = child2->GetFrame(n, env);
-		if( AVSenvironment->MakeWritable(&df) == false ) AVSenvironment->ThrowError("RemoveGrainHD: MakeWritable failed");
+		if( env->MakeWritable(&df) == false ) env->ThrowError("RemoveGrainHD: MakeWritable failed");
 #else
 		PVideoFrame df0 = child2->GetFrame(n, env);
-		PVideoFrame df = AVSenvironment->NewVideoFrame(vi);
+		PVideoFrame df = env->NewVideoFrame(vi);
 #endif
 		PVideoFrame sf = child->GetFrame(n, env);
 #ifdef	PROFILE_VERSION
@@ -2066,7 +2064,7 @@ class	RemoveGrainHD : public GenericVideoFilter, public PlanarAccess
 		do
 		{
 #ifndef	AVS_COPY
-			AVSenvironment->BitBlt(GetWritePtr(df, i), GetPitch(df, i), GetReadPtr(df0, i), GetPitch(df0, i), width[i], height[i]);
+			BitBlt(GetWritePtr(df, i), GetPitch(df, i), GetReadPtr(df0, i), GetPitch(df0, i), width[i], height[i]);
 #endif
 #ifdef	PROFILE_VERSION
 			profile[i] =
@@ -2079,11 +2077,11 @@ class	RemoveGrainHD : public GenericVideoFilter, public PlanarAccess
 		return df;
 	};
 public:
-	RemoveGrainHD(PClip clip, PClip _child2, int *_xradius, int *_yradius, int *_llimit, int *_ulimit, bool planar) : GenericVideoFilter(clip), PlanarAccess(vi), child2(_child2)
+	RemoveGrainHD(PClip clip, PClip _child2, int *_xradius, int *_yradius, int *_llimit, int *_ulimit, bool planar, IScriptEnvironment* env) : GenericVideoFilter(clip), PlanarAccess(vi), child2(_child2)
 	{
-		if(planes == 0) AVSenvironment->ThrowError("RemoveGrainHD: only planar color spaces are allowed");
+		if(planes == 0) env->ThrowError("RemoveGrainHD: only planar color spaces are allowed");
 	
-		CompareVideoInfo(vi, child2->GetVideoInfo(), "RemoveGrainHD"); 
+		CompareVideoInfo(vi, child2->GetVideoInfo(), "RemoveGrainHD", env); 
 
 		int i = planes;
 		do
@@ -2102,7 +2100,7 @@ public:
 				pfunction[i] = removegrain;
 				int	xr, yr;
 				if( ((inner_width[i] = width[i] - (xr = 2 * xradius[i] + 1)) <= 0) || ((inner_height[i] = height[i] - (yr = 2 * yradius[i] + 1)) <= 0) )
-					AVSenvironment->ThrowError("RemoveGrainHD: width or height of the clip is to small!");
+					env->ThrowError("RemoveGrainHD: width or height of the clip is to small!");
 				int	x = xradius[i] + 1;
 				int	boxsize = xr * yr;
 				int boxsize2 = (boxsize + 1)/ 2;
@@ -2166,7 +2164,7 @@ AVSValue __cdecl CreateRemoveGrainHD(AVSValue args, void* user_data, IScriptEnvi
 	} while( --i >= 0 );
 	
 	PClip clip = args[CLIP].AsClip();
-	return new RemoveGrainHD(clip, args[CHILD2].Defined() ? args[CHILD2].AsClip() : clip, xradius, yradius, llimit, ulimit, args[PLANAR].AsBool(false));
+	return new RemoveGrainHD(clip, args[CHILD2].Defined() ? args[CHILD2].AsClip() : clip, xradius, yradius, llimit, ulimit, args[PLANAR].AsBool(false), env);
 }
 
 
@@ -2216,9 +2214,9 @@ class	TemporalRemoveGrainHD : public GenericVideoFilter, public PlanarAccess
 #endif
 		{
 #ifdef	AVS_COPY
-			if( AVSenvironment->MakeWritable(&df) == false ) AVSenvironment->ThrowError("TemporalRemoveGrainHD: MakeWritable failed");
+			if( env->MakeWritable(&df) == false ) env->ThrowError("TemporalRemoveGrainHD: MakeWritable failed");
 #else
-			PVideoFrame df = AVSenvironment->NewVideoFrame(vi);
+			PVideoFrame df = env->NewVideoFrame(vi);
 #endif
 			PVideoFrame sf1 = child->GetFrame(n - 1, env);
 			PVideoFrame sf0 = child->GetFrame(n, env);
@@ -2232,7 +2230,7 @@ class	TemporalRemoveGrainHD : public GenericVideoFilter, public PlanarAccess
 			do
 			{
 #ifndef	AVS_COPY
-				AVSenvironment->BitBlt(GetWritePtr(df, i), GetPitch(df, i), GetReadPtr(df0, i), GetPitch(df0, i), width[i], height[i]);
+				BitBlt(GetWritePtr(df, i), GetPitch(df, i), GetReadPtr(df0, i), GetPitch(df0, i), width[i], height[i]);
 #endif
 #ifdef	PROFILE_VERSION
 				profile[i] =
@@ -2246,13 +2244,13 @@ class	TemporalRemoveGrainHD : public GenericVideoFilter, public PlanarAccess
 		}
 	};
 public:
-	TemporalRemoveGrainHD(PClip clip, PClip _child2, int *_xradius, int *_yradius, int *_llimit, int *_ulimit, int _weight, bool planar) : GenericVideoFilter(clip), PlanarAccess(vi), child2(_child2), weight(_weight)
+	TemporalRemoveGrainHD(PClip clip, PClip _child2, int *_xradius, int *_yradius, int *_llimit, int *_ulimit, int _weight, bool planar, IScriptEnvironment* env) : GenericVideoFilter(clip), PlanarAccess(vi), child2(_child2), weight(_weight)
 	{
-		if(planes == 0) AVSenvironment->ThrowError("TemporalRemoveGrainHD: only planar color spaces are allowed");
+		if(planes == 0) env->ThrowError("TemporalRemoveGrainHD: only planar color spaces are allowed");
 	
-		CompareVideoInfo(vi, child2->GetVideoInfo(), "TemporalRemoveGrainHD"); 
+		CompareVideoInfo(vi, child2->GetVideoInfo(), "TemporalRemoveGrainHD", env); 
 
-		if( (int)(lastframe = vi.num_frames - 3) < 0 ) AVSenvironment->ThrowError("TemporalRemoveGrainHD: input clip too short");
+		if( (int)(lastframe = vi.num_frames - 3) < 0 ) env->ThrowError("TemporalRemoveGrainHD: input clip too short");
 
 		/* initialise wltable */
 		int	i = TABLE_MAX;
@@ -2285,7 +2283,7 @@ public:
 				pfunction[i] = tremovegrain;
 				int	xr, yr;
 				if( ((inner_width[i] = width[i] - (xr = 2 * xradius[i] + 1)) <= 0) || ((inner_height[i] = height[i] - (yr = 2 * yradius[i] + 1)) <= 0) )
-					AVSenvironment->ThrowError("TemporalRemoveGrainHD: width or height of the clip is to small!");
+					env->ThrowError("TemporalRemoveGrainHD: width or height of the clip is to small!");
 				int	x = xradius[i] + 1;
 				int	boxsize = xr * yr;
 				int boxsize2 = (boxsize + 1)/ 2;
@@ -2352,7 +2350,7 @@ AVSValue __cdecl CreateTemporalRemoveGrainHD(AVSValue args, void* user_data, ISc
 	} while( --i >= 0 );
 	
 	PClip clip = args[CLIP].AsClip();
-	return new TemporalRemoveGrainHD(clip, args[CHILD2].Defined() ? args[CHILD2].AsClip() : clip, xradius, yradius, llimit, ulimit, weight, args[PLANAR].AsBool(false));
+	return new TemporalRemoveGrainHD(clip, args[CHILD2].Defined() ? args[CHILD2].AsClip() : clip, xradius, yradius, llimit, ulimit, weight, args[PLANAR].AsBool(false), env);
 }
 
 #ifdef	PROFILE_VERSION
@@ -2374,7 +2372,7 @@ void
 #endif	
 		tsm_copy_plane(BYTE *dst, int dpitch, const BYTE *src0, int spitch0, const BYTE *src1, int spitch1, const BYTE *src2, int spitch2, int w, int h, int **limits, int xradius, int yradius, int weight)
 {
-	AVSenvironment->BitBlt(dst, dpitch, src0, spitch0, w, h);
+	BitBlt(dst, dpitch, src0, spitch0, w, h);
 #ifdef	PROFILE_VERSION
 	return 0;
 #endif
@@ -2420,11 +2418,11 @@ void
 		return df;	
 	};
 public:
-	TemporalSmartMedian(PClip clip, int *_xradius, int *_yradius, int *_limit, int _weight, bool planar) : GenericVideoFilter(clip), PlanarAccess(vi), weight(_weight)
+	TemporalSmartMedian(PClip clip, int *_xradius, int *_yradius, int *_limit, int _weight, bool planar, IScriptEnvironment* env) : GenericVideoFilter(clip), PlanarAccess(vi), weight(_weight)
 	{
-		if(planes == 0) AVSenvironment->ThrowError("TemporalSmartMedian: only planar color spaces are allowed");
+		if(planes == 0) env->ThrowError("TemporalSmartMedian: only planar color spaces are allowed");
 	
-		if( (int)(lastframe = vi.num_frames - 3) < 0 ) AVSenvironment->ThrowError("TemporalSmartMedian: input clip too short");
+		if( (int)(lastframe = vi.num_frames - 3) < 0 ) env->ThrowError("TemporalSmartMedian: input clip too short");
 
 		int i = planes;
 		do
@@ -2450,7 +2448,7 @@ public:
 					pfunction[i] = tsmart_median;
 					int	xr, yr;
 					if( ((inner_width[i] -= (xr = 2 * xradius[i] + 1)) <= 0) || ((inner_height[i] -= (yr = 2 * yradius[i] + 1)) <= 0) )
-						AVSenvironment->ThrowError("TemporalSmartMedian: width or height of the clip is to small!");
+						env->ThrowError("TemporalSmartMedian: width or height of the clip is to small!");
 					int	x = xradius[i] + 1;
 					int	boxsize = xr * yr;
 					int boxsize2 = (boxsize + 1)/ 2;
@@ -2513,7 +2511,7 @@ AVSValue __cdecl CreateTemporalSmartMedian(AVSValue args, void* user_data, IScri
 		j -= 3;
 	} while( --i >= 0 );
 	
-	return new TemporalSmartMedian(args[CLIP].AsClip(), xradius, yradius, limits, weight, args[PLANAR].AsBool(false));
+	return new TemporalSmartMedian(args[CLIP].AsClip(), xradius, yradius, limits, weight, args[PLANAR].AsBool(false), env);
 }
 
 #ifdef	PROFILE_VERSION
@@ -2535,7 +2533,7 @@ void
 #endif	
 		sm2_copy_plane(BYTE *dst, int dpitch, const BYTE *src0, int spitch0, const BYTE *src1, int spitch1, int w, int h, int **limits, int xradius, int yradius, int weight)
 {
-	AVSenvironment->BitBlt(dst, dpitch, src0, spitch0, w, h);
+	BitBlt(dst, dpitch, src0, spitch0, w, h);
 #ifdef	PROFILE_VERSION
 	return 0;
 #endif
@@ -2579,10 +2577,10 @@ void
 		return df;	
 	};
 public:
-	SmartMedian2(PClip clip, PClip clip2, int *_xradius, int *_yradius, int *_limit, int _weight, bool planar) : GenericVideoFilter(clip), PlanarAccess(vi), child2(clip2), weight(_weight)
+	SmartMedian2(PClip clip, PClip clip2, int *_xradius, int *_yradius, int *_limit, int _weight, bool planar, IScriptEnvironment* env) : GenericVideoFilter(clip), PlanarAccess(vi), child2(clip2), weight(_weight)
 	{
-		CompareVideoInfo(vi, child2->GetVideoInfo(), "SmartMedian2"); 
-		if(planes == 0) AVSenvironment->ThrowError("SmartMedian2: only planar color spaces are allowed");
+		CompareVideoInfo(vi, child2->GetVideoInfo(), "SmartMedian2", env); 
+		if(planes == 0) env->ThrowError("SmartMedian2: only planar color spaces are allowed");
 	
 		int i = planes;
 		do
@@ -2608,7 +2606,7 @@ public:
 					pfunction[i] = smart_median2;
 					int	xr, yr;
 					if( ((inner_width[i] -= (xr = 2 * xradius[i] + 1)) <= 0) || ((inner_height[i] -= (yr = 2 * yradius[i] + 1)) <= 0) )
-						AVSenvironment->ThrowError("SmartMedian2: width or height of the clip is to small!");
+						env->ThrowError("SmartMedian2: width or height of the clip is to small!");
 					int	x = xradius[i] + 1;
 					int	boxsize = xr * yr;
 					int boxsize2 = (boxsize + 1)/ 2;
@@ -2671,7 +2669,7 @@ AVSValue __cdecl CreateSmartMedian2(AVSValue args, void* user_data, IScriptEnvir
 		j -= 3;
 	} while( --i >= 0 );
 	
-	return new SmartMedian2(args[CLIP].AsClip(), args[CLIP2].AsClip(), xradius, yradius, limits, weight, args[PLANAR].AsBool(false));
+	return new SmartMedian2(args[CLIP].AsClip(), args[CLIP2].AsClip(), xradius, yradius, limits, weight, args[PLANAR].AsBool(false), env);
 }
 
 #ifdef	PROFILE_VERSION
@@ -2681,7 +2679,7 @@ void
 #endif	
 		rank_repair_copy(BYTE *dst, int dpitch, const BYTE *src0, int spitch0, const BYTE *src1, int spitch1, int w, int h, int xradius, int yradius)
 {
-	AVSenvironment->BitBlt(dst, dpitch, src1, spitch1, w, h);
+	BitBlt(dst, dpitch, src1, spitch1, w, h);
 #ifdef	PROFILE_VERSION
 	return 0;
 #endif
@@ -2694,7 +2692,7 @@ void
 #endif	
 		restore_chroma(BYTE *dst, int dpitch, const BYTE *src0, int spitch0, const BYTE *src1, int spitch1, int w, int h, int xradius, int yradius)
 {
-	AVSenvironment->BitBlt(dst, dpitch, src0, spitch0, w, h);
+	BitBlt(dst, dpitch, src0, spitch0, w, h);
 #ifdef	PROFILE_VERSION
 	return 0;
 #endif
@@ -2749,10 +2747,10 @@ void
 		return df;	
 	};
 public:
-	RankRepair(PClip clip, PClip clip2, int *_xradius, int *_yradius, bool _restore_chroma, bool planar) : GenericVideoFilter(clip), PlanarAccess(vi), child2(clip2)
+	RankRepair(PClip clip, PClip clip2, int *_xradius, int *_yradius, bool _restore_chroma, bool planar, IScriptEnvironment* env) : GenericVideoFilter(clip), PlanarAccess(vi), child2(clip2)
 	{
-		CompareVideoInfo(vi, child2->GetVideoInfo(), "RankRepair"); 
-		if(planes == 0) AVSenvironment->ThrowError("RankRepair: only planar color spaces are allowed");
+		CompareVideoInfo(vi, child2->GetVideoInfo(), "RankRepair", env); 
+		if(planes == 0) env->ThrowError("RankRepair: only planar color spaces are allowed");
 	
 		int i = planes;
 		do
@@ -2778,7 +2776,7 @@ public:
 					pfunction[i] = rank_repair;
 					int	xr, yr;
 					if( ((inner_width[i] -= (xr = 2 * xradius[i] + 1)) <= 0) || ((inner_height[i] -= (yr = 2 * yradius[i] + 1)) <= 0) )
-						AVSenvironment->ThrowError("RankRepair: width or height of the clip is to small!");
+						env->ThrowError("RankRepair: width or height of the clip is to small!");
 				}
 			}
 		} while( --i >= 0 );
@@ -2804,7 +2802,7 @@ AVSValue __cdecl CreateRankRepair(AVSValue args, void* user_data, IScriptEnviron
 		j -= 2;
 	} while( --i >= 0 );
 	
-	return new RankRepair(args[CLIP].AsClip(), args[CLIP2].AsClip(), xradius, yradius, args[RESTORE_CHROMA].AsBool(false), args[PLANAR].AsBool(false));
+	return new RankRepair(args[CLIP].AsClip(), args[CLIP2].AsClip(), xradius, yradius, args[RESTORE_CHROMA].AsBool(false), args[PLANAR].AsBool(false), env);
 }
 
 
@@ -2816,7 +2814,6 @@ const AVS_Linkage* AVS_linkage = nullptr;
 
 extern "C" __declspec(dllexport) const char* __stdcall AvisynthPluginInit3(IScriptEnvironment * env, const AVS_Linkage* const vectors) {
   AVS_linkage = vectors;
-	AVSenvironment = env;
 #ifdef	LOOKUP
 	/* initialise ltable */
 	int	i = TABLE_MAX + 1;

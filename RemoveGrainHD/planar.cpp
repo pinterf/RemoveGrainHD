@@ -71,3 +71,19 @@ PlanarAccess::PlanarAccess(const VideoInfo &vi, bool planar)
 		width[0] = vi.RowSize();
 	}
 }
+
+void BitBlt(uint8_t* dstp, int dst_pitch, const uint8_t* srcp, int src_pitch, int row_size, int height)
+{
+  if (!height || !row_size) return;
+  if (height == 1 || (dst_pitch == src_pitch && src_pitch == row_size))
+    memcpy(dstp, srcp, src_pitch * height);
+  else
+  {
+    for (int y = height; y > 0; --y)
+    {
+      memcpy(dstp, srcp, row_size);
+      dstp += dst_pitch;
+      srcp += src_pitch;
+    }
+  }
+}
