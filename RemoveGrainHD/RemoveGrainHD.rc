@@ -1,6 +1,6 @@
 1 VERSIONINFO
- FILEVERSION 0,6,0,0
- PRODUCTVERSION 0,6,0,0
+ FILEVERSION 0,7,0,0
+ PRODUCTVERSION 0,7,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -18,14 +18,14 @@ BEGIN
             VALUE "Comments", "\0"
             VALUE "CompanyName", "\0"
             VALUE "FileDescription", "RemoveGrainHD for Avisynth 2.6 interface\0"
-            VALUE "FileVersion", "0, 6, 0, 0\0"
+            VALUE "FileVersion", "0, 7, 0, 0\0"
             VALUE "InternalName", "RemoveGrainHD\0"
             VALUE "LegalCopyright", "Copyright (C) 2005-2009 Rainer Wittmann, (C)2021 et al.\0"
             VALUE "LegalTrademarks", "\0"
             VALUE "OriginalFilename", "RemoveGrainHD.dll\0"
             VALUE "PrivateBuild", "\0"
             VALUE "ProductName", "RemoveGrainHD\0"
-            VALUE "ProductVersion", "0, 6, 0, 0\0"
+            VALUE "ProductVersion", "0, 7, 0, 0\0"
             VALUE "SpecialBuild", "\0"
         END
     END
