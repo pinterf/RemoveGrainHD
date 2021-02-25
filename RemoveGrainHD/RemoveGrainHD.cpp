@@ -1881,7 +1881,8 @@ class SingleQuantile : public GenericVideoFilter, public PlanarAccess
 public:
   SingleQuantile(PClip clip, int* _xradius, int* _yradius, int* _limit, bool planar, sqf func, const char* name, IScriptEnvironment* env) : primary(func), GenericVideoFilter(clip), PlanarAccess(vi)
   {
-    if (planes == 0) env->ThrowError("%s: only planar color spaces are allowed", name);
+    if(vi.BitsPerComponent() != 8) env->ThrowError("%s: only 8 bit color spaces are allowed", name);
+    if (planes == 0 && !vi.IsY()) env->ThrowError("%s: only planar color spaces are allowed", name);
 
 #ifndef LOCALTABLE    
     memset(table, 0, sizeof(int) * TABLE_SIZE);
@@ -2084,7 +2085,8 @@ class RemoveGrainHD : public GenericVideoFilter, public PlanarAccess
 public:
   RemoveGrainHD(PClip clip, PClip _child2, int* _xradius, int* _yradius, int* _llimit, int* _ulimit, bool planar, IScriptEnvironment* env) : GenericVideoFilter(clip), PlanarAccess(vi), child2(_child2)
   {
-    if (planes == 0) env->ThrowError("RemoveGrainHD: only planar color spaces are allowed");
+    if (vi.BitsPerComponent() != 8) env->ThrowError("RemoveGrainHD: only 8 bit color spaces are allowed");
+    if (planes == 0 && !vi.IsY()) env->ThrowError("RemoveGrainHD: only planar color spaces are allowed");
 
     CompareVideoInfo(vi, child2->GetVideoInfo(), "RemoveGrainHD", env);
 
@@ -2253,7 +2255,8 @@ class TemporalRemoveGrainHD : public GenericVideoFilter, public PlanarAccess
 public:
   TemporalRemoveGrainHD(PClip clip, PClip _child2, int* _xradius, int* _yradius, int* _llimit, int* _ulimit, int _weight, bool planar, IScriptEnvironment* env) : GenericVideoFilter(clip), PlanarAccess(vi), child2(_child2), weight(_weight)
   {
-    if (planes == 0) env->ThrowError("TemporalRemoveGrainHD: only planar color spaces are allowed");
+    if (vi.BitsPerComponent() != 8) env->ThrowError("TemporalRemoveGrainHD: only 8 bit color spaces are allowed");
+    if (planes == 0 && !vi.IsY()) env->ThrowError("TemporalRemoveGrainHD: only planar color spaces are allowed");
 
     CompareVideoInfo(vi, child2->GetVideoInfo(), "TemporalRemoveGrainHD", env);
 
@@ -2429,7 +2432,8 @@ class TemporalSmartMedian : public GenericVideoFilter, public PlanarAccess
 public:
   TemporalSmartMedian(PClip clip, int* _xradius, int* _yradius, int* _limit, int _weight, bool planar, IScriptEnvironment* env) : GenericVideoFilter(clip), PlanarAccess(vi), weight(_weight)
   {
-    if (planes == 0) env->ThrowError("TemporalSmartMedian: only planar color spaces are allowed");
+    if (vi.BitsPerComponent() != 8) env->ThrowError("TemporalSmartMedian: only 8 bit color spaces are allowed");
+    if (planes == 0 && !vi.IsY()) env->ThrowError("TemporalSmartMedian: only planar color spaces are allowed");
 
     if ((int)(lastframe = vi.num_frames - 3) < 0) env->ThrowError("TemporalSmartMedian: input clip too short");
 
@@ -2591,7 +2595,8 @@ public:
   SmartMedian2(PClip clip, PClip clip2, int* _xradius, int* _yradius, int* _limit, int _weight, bool planar, IScriptEnvironment* env) : GenericVideoFilter(clip), PlanarAccess(vi), child2(clip2), weight(_weight)
   {
     CompareVideoInfo(vi, child2->GetVideoInfo(), "SmartMedian2", env);
-    if (planes == 0) env->ThrowError("SmartMedian2: only planar color spaces are allowed");
+    if (vi.BitsPerComponent() != 8) env->ThrowError("SmartMedian2: only 8 bit color spaces are allowed");
+    if (planes == 0 && !vi.IsY()) env->ThrowError("SmartMedian2: only planar color spaces are allowed");
 
     int i = planes;
     do
@@ -2763,7 +2768,8 @@ public:
   RankRepair(PClip clip, PClip clip2, int* _xradius, int* _yradius, bool _restore_chroma, bool planar, IScriptEnvironment* env) : GenericVideoFilter(clip), PlanarAccess(vi), child2(clip2)
   {
     CompareVideoInfo(vi, child2->GetVideoInfo(), "RankRepair", env);
-    if (planes == 0) env->ThrowError("RankRepair: only planar color spaces are allowed");
+    if (vi.BitsPerComponent() != 8) env->ThrowError("RankRepair: only 8 bit color spaces are allowed");
+    if (planes == 0 && !vi.IsY()) env->ThrowError("RankRepair: only planar color spaces are allowed");
 
     int i = planes;
     do

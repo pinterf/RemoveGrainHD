@@ -8,10 +8,16 @@ void  debug_printf(const char* format, ...);
 #endif
 
 const int   plane[3] = { PLANAR_Y, PLANAR_U, PLANAR_V };
+const int   planeRGB[3] = { PLANAR_G, PLANAR_B, PLANAR_R };
 
-int __stdcall PlanarAccess::YV12_GetPitch(VideoFrame* frame, int i)
+int __stdcall PlanarAccess::YUV_GetPitch(VideoFrame* frame, int i)
 {
   return  frame->GetPitch(plane[i]);
+}
+
+int __stdcall PlanarAccess::RGB_GetPitch(VideoFrame* frame, int i)
+{
+  return  frame->GetPitch(planeRGB[i]);
 }
 
 int __stdcall PlanarAccess::YUY2_GetPitch(VideoFrame* frame, int i)
@@ -19,9 +25,14 @@ int __stdcall PlanarAccess::YUY2_GetPitch(VideoFrame* frame, int i)
   return  frame->GetPitch();
 }
 
-const BYTE* __stdcall PlanarAccess::YV12_GetReadPtr(VideoFrame* frame, int i)
+const BYTE* __stdcall PlanarAccess::YUV_GetReadPtr(VideoFrame* frame, int i)
 {
   return  frame->GetReadPtr(plane[i]);
+}
+
+const BYTE* __stdcall PlanarAccess::RGB_GetReadPtr(VideoFrame* frame, int i)
+{
+  return  frame->GetReadPtr(planeRGB[i]);
 }
 
 const BYTE* __stdcall PlanarAccess::YUY2_GetReadPtr(VideoFrame* frame, int i)
@@ -29,9 +40,14 @@ const BYTE* __stdcall PlanarAccess::YUY2_GetReadPtr(VideoFrame* frame, int i)
   return  frame->GetReadPtr() + planeoffset[i];
 }
 
-BYTE* __stdcall PlanarAccess::YV12_GetWritePtr(VideoFrame* frame, int i)
+BYTE* __stdcall PlanarAccess::YUV_GetWritePtr(VideoFrame* frame, int i)
 {
   return  frame->GetWritePtr(plane[i]);
+}
+
+BYTE* __stdcall PlanarAccess::RGB_GetWritePtr(VideoFrame* frame, int i)
+{
+  return  frame->GetWritePtr(planeRGB[i]);
 }
 
 BYTE* __stdcall PlanarAccess::YUY2_GetWritePtr(VideoFrame* frame, int i)
@@ -42,31 +58,54 @@ BYTE* __stdcall PlanarAccess::YUY2_GetWritePtr(VideoFrame* frame, int i)
 
 PlanarAccess::PlanarAccess(const VideoInfo& vi, bool planar)
 {
+  width[1] = width[0] = vi.width;
+  height[1] = height[0] = vi.height;
+
+  // 'planar' hack YUY2 or RGB
   _GetPitch = &PlanarAccess::YUY2_GetPitch;
   _GetReadPtr = &PlanarAccess::YUY2_GetReadPtr;
   _GetWritePtr = &PlanarAccess::YUY2_GetWritePtr;
-  width[1] = width[0] = vi.width;
-  height[1] = height[0] = vi.height;
+
   if (vi.IsYUV())
   {
-    width[1] /= 2;
-    if (vi.IsYV12())
-    {
-      height[1] /= 2;
-      _GetPitch = &PlanarAccess::YV12_GetPitch;
-      _GetReadPtr = &PlanarAccess::YV12_GetReadPtr;
-      _GetWritePtr = &PlanarAccess::YV12_GetWritePtr;
+    if (vi.IsYUY2()) {
+      width[1] = vi.width / 2;
     }
+    else {
+      width[1] = vi.IsY() ? 0 : vi.width >> vi.GetPlaneWidthSubsampling(PLANAR_U);
+      height[1] = vi.IsY() ? 0 : vi.height >> vi.GetPlaneHeightSubsampling(PLANAR_U);
+      _GetPitch = &PlanarAccess::YUV_GetPitch;
+      _GetReadPtr = &PlanarAccess::YUV_GetReadPtr;
+      _GetWritePtr = &PlanarAccess::YUV_GetWritePtr;
+    }
+    width[2] = width[1];
+    height[2] = height[1];
   }
-  width[2] = width[1];
-  height[2] = height[1];
+  else if (vi.IsRGB() && vi.IsPlanar()) {
+    width[2] = width[1] = width[0];
+    height[2] = height[1] = height[0];
+    _GetPitch = &PlanarAccess::RGB_GetPitch;
+    _GetReadPtr = &PlanarAccess::RGB_GetReadPtr;
+    _GetWritePtr = &PlanarAccess::RGB_GetWritePtr;
+  }
+  else {
+    // planar hacked packed RGB
+    width[2] = width[1];
+    height[2] = height[1];
+  }
+
   planeoffset[0] = 0;
   planeoffset[1] = width[0];
   planeoffset[2] = planeoffset[1] + width[1];
-  planes = 2;
+  // number of planes -1
+  planes = vi.IsY() ? 0 : 2;
 
-  if (planar + vi.IsYV12() == 0)
+  // planar: old YUY2 hack parameter
+  if (!planar && (vi.IsYUY2() || (vi.IsRGB() && !vi.IsPlanar())))
   {
+    // (packed RGB or YUY2)+!planar
+    // though it is supported no longer
+    // 'planar': Avisynth 2.5 hack to store planar data inside a YUY2 or RGB24
     planes = 0;
     width[0] = vi.RowSize();
   }

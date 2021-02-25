@@ -6,21 +6,19 @@ extern const int plane[];
 class PlanarAccess
 {
 private:
-  int planeoffset[3];
+  int planeoffset[3]; // YUY2 planar
   int(__stdcall PlanarAccess::* _GetPitch)(VideoFrame* frame, int i);
   const BYTE* (__stdcall PlanarAccess::* _GetReadPtr)(VideoFrame* frame, int i);
   BYTE* (__stdcall PlanarAccess::* _GetWritePtr)(VideoFrame* frame, int i);
 
-  int __stdcall YV12_GetPitch(VideoFrame* frame, int i);
-
+  int __stdcall YUV_GetPitch(VideoFrame* frame, int i);
+  int __stdcall RGB_GetPitch(VideoFrame* frame, int i);
   int __stdcall YUY2_GetPitch(VideoFrame* frame, int i);
-
-  const BYTE* __stdcall YV12_GetReadPtr(VideoFrame* frame, int i);
-
+  const BYTE* __stdcall YUV_GetReadPtr(VideoFrame* frame, int i);
+  const BYTE* __stdcall RGB_GetReadPtr(VideoFrame* frame, int i);
   const BYTE* __stdcall YUY2_GetReadPtr(VideoFrame* frame, int i);
-
-  BYTE* __stdcall YV12_GetWritePtr(VideoFrame* frame, int i);
-
+  BYTE* __stdcall YUV_GetWritePtr(VideoFrame* frame, int i);
+  BYTE* __stdcall RGB_GetWritePtr(VideoFrame* frame, int i);
   BYTE* __stdcall YUY2_GetWritePtr(VideoFrame* frame, int i);
 
 public:
