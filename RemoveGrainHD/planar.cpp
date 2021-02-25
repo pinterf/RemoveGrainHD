@@ -1,7 +1,6 @@
-#define VC_EXTRALEAN 
-#include <Windows.h>
 #include "avisynth.h"
 #include "planar.h"
+#include <cstring>
 
 #if 1
 void  debug_printf(const char* format, ...);

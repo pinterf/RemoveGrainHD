@@ -1,4 +1,4 @@
-#define LOGO    "RemoveGrainHD 0.5\n"
+#define LOGO    "RemoveGrainHD\n"
 // An Avisynth plugin for removing grain from progressive video
 //
 // By Rainer Wittmann <gorw@gmx.de>
@@ -17,10 +17,18 @@
 // Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA, or visit
 // http://www.gnu.org/copyleft/gpl.html .
 
-#define VC_EXTRALEAN 
+#include "avisynth.h"
+#include "planar.h"
+#ifdef _WIN32
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
 #include <Windows.h>
+#endif
 #include <stdio.h>
 #include <stdarg.h>
+#include <algorithm>
+#include "common.h"
 
 // FIXME: PF 2021 to check: /J option is given for compiler (treat char as unsigned char), 
 //        does it affect anything if I remove this speciality?
@@ -51,14 +59,11 @@ static  void  debug_printf(const char* format, ...)
     char  buffer[DPRINTF_SIZE];
     va_list args;
     va_start(args, format);
-    vsprintf_s(buffer, DPRINTF_SIZE, format, args);
+    vsnprintf(buffer, DPRINTF_SIZE, format, args);
     va_end(args);
     OutputDebugString(buffer);
   }
 }
-
-#include "avisynth.h"
-#include "planar.h"
 
 #define TABLE_MAX 255
 
@@ -1965,7 +1970,7 @@ int QuantileDefault(int xradius, int yradius)
 
 int SmartMedianDefault(int xradius, int yradius)
 {
-  return 4 * min(xradius, yradius) + 2;
+  return 4 * std::min(xradius, yradius) + 2;
 }
 
 AVSValue __cdecl CreateSingleQuantile(AVSValue args, sqf func, int dfunc(int, int), const char* name, IScriptEnvironment* env)
@@ -2164,7 +2169,7 @@ AVSValue __cdecl CreateRemoveGrainHD(AVSValue args, void* user_data, IScriptEnvi
   {
     xradius[i] = args[RADIUS_Y + j].AsInt(radius);
     yradius[i] = args[YRADIUS_Y + j].AsInt(xradius[i]);
-    llimit[i] = args[RANK_Y + j].AsInt(args[RADIUS_Y + j].Defined() || args[RADIUS_Y + j].Defined() ? 2 * min(xradius[i], yradius[i]) + 1 : limit);
+    llimit[i] = args[RANK_Y + j].AsInt(args[RADIUS_Y + j].Defined() || args[RADIUS_Y + j].Defined() ? 2 * std::min(xradius[i], yradius[i]) + 1 : limit);
     int maxsize = (2 * xradius[i] + 1) * (2 * yradius[i] + 1);
     if (llimit[i] > maxsize) llimit[i] = maxsize;
     ulimit[i] = args[URANK_Y + j].AsInt(llimit[i]);
@@ -2353,7 +2358,7 @@ AVSValue __cdecl CreateTemporalRemoveGrainHD(AVSValue args, void* user_data, ISc
   {
     xradius[i] = args[RADIUS_Y + j].AsInt(radius);
     yradius[i] = args[YRADIUS_Y + j].AsInt(xradius[i]);
-    llimit[i] = args[RANK_Y + j].AsInt(args[RADIUS_Y + j].Defined() || args[RADIUS_Y + j].Defined() ? factor * (2 * min(xradius[i], yradius[i]) + 1) : limit);
+    llimit[i] = args[RANK_Y + j].AsInt(args[RADIUS_Y + j].Defined() || args[RADIUS_Y + j].Defined() ? factor * (2 * std::min(xradius[i], yradius[i]) + 1) : limit);
     int maxsize = factor * (2 * xradius[i] + 1) * (2 * yradius[i] + 1);
     if (llimit[i] > maxsize) llimit[i] = maxsize;
     ulimit[i] = args[URANK_Y + j].AsInt(llimit[i]);
@@ -2519,7 +2524,7 @@ AVSValue __cdecl CreateTemporalSmartMedian(AVSValue args, void* user_data, IScri
   {
     xradius[i] = args[RADIUS_Y + j].AsInt(radius);
     yradius[i] = args[YRADIUS_Y + j].AsInt(xradius[i]);
-    limits[i] = args[PIXELS + j].AsInt(args[RADIUS_Y + j].Defined() || args[RADIUS_Y + j].Defined() ? factor * (4 * min(xradius[i], yradius[i]) + 2) : limit);
+    limits[i] = args[PIXELS + j].AsInt(args[RADIUS_Y + j].Defined() || args[RADIUS_Y + j].Defined() ? factor * (4 * std::min(xradius[i], yradius[i]) + 2) : limit);
     int maxsize = factor * (2 * xradius[i] + 1) * (2 * yradius[i] + 1);
     if (limits[i] > maxsize) limits[i] = maxsize;
     if (limits[i] <= 0) limits[i] = 1;
@@ -2680,7 +2685,7 @@ AVSValue __cdecl CreateSmartMedian2(AVSValue args, void* user_data, IScriptEnvir
   {
     xradius[i] = args[RADIUS_Y + j].AsInt(radius);
     yradius[i] = args[YRADIUS_Y + j].AsInt(xradius[i]);
-    limits[i] = args[PIXELS + j].AsInt(args[RADIUS_Y + j].Defined() || args[RADIUS_Y + j].Defined() ? factor * (4 * min(xradius[i], yradius[i]) + 2) : limit);
+    limits[i] = args[PIXELS + j].AsInt(args[RADIUS_Y + j].Defined() || args[RADIUS_Y + j].Defined() ? factor * (4 * std::min(xradius[i], yradius[i]) + 2) : limit);
     int maxsize = factor * (2 * xradius[i] + 1) * (2 * yradius[i] + 1);
     if (limits[i] > maxsize) limits[i] = maxsize;
     if (limits[i] <= 0) limits[i] = 1;
