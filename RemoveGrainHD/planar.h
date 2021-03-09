@@ -41,7 +41,7 @@ public:
     return  (this->*_GetWritePtr)(frame.operator ->(), i);
   }
 
-  PlanarAccess(const VideoInfo& vi, bool planar = true);
+  PlanarAccess(const VideoInfo& vi, bool planar);
 };
 
 void BitBlt(uint8_t* dstp, int dst_pitch, const uint8_t* srcp, int src_pitch, int row_size, int height);
