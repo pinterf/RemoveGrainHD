@@ -7,6 +7,7 @@ Port of classic RemoveGrainHD 0.5 to Avisynth v2.6 interface (x86/x64)
 Note: Previous v0.5 DLL version named RemoveGraindHDS.dll must be deleted to avoid collision
 
 Avisynth wiki: http://avisynth.nl/index.php/RemoveGrainHD
+Forum: https://forum.doom9.org/showthread.php?t=129539
 
 Build instructions
 ==================
